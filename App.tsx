@@ -1,33 +1,24 @@
-import {Text, View} from 'react-native';
-import CatComponent from './Ly_Thuyet/Buoi_1/CatComponent';
-import {useState} from 'react';
-import BT_Buoi2 from './Ly_Thuyet/Buoi_2/BT_Buoi2';
+import React from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+
+import Login from './Ly_Thuyet/Buoi_3/Login';
+import ResetPass from './Ly_Thuyet/Buoi_3/ResetPass';
+import Register from './Ly_Thuyet/Buoi_3/Register';
+
+const Stack = createNativeStackNavigator();
 
 const App = () => {
-  const [isHungry, setIsHungry] = useState<boolean>(false);
-
-  const handleFeedCat = () => {
-    setIsHungry(true);
-    console.log('Feeding the cat...');
-  };
-
   return (
-    // <View
-    //   style={{
-    //     flex: 1,
-    //     flexDirection: 'column',
-    //     justifyContent: 'center',
-    //     alignItems: 'center',
-    //   }}>
-    //   <Text style={{fontSize: 20}}>Nguyen Quoc Dung - 2124802010008</Text>
-    //   <CatComponent
-    //     name="Tommy"
-    //     isHungry={isHungry}
-    //     age={3}
-    //     onFeedCat={handleFeedCat}
-    //   />
-    // </View>
-    <BT_Buoi2 />
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Login"
+        screenOptions={{headerShown: false}}>
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="ResetPass" component={ResetPass} />
+        <Stack.Screen name="Login" component={Login} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
 
