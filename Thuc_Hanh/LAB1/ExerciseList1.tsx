@@ -40,6 +40,10 @@ const ExerciseList: ExerciseProps[] = [
     RouterName: 'Project8',
     ExerciseName: 'Bài 8',
   },
+  {
+    RouterName: 'CaculatorApp',
+    ExerciseName: 'Caculator App',
+  },
 ];
 
 const ExerciseList1 = () => {

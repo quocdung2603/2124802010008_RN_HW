@@ -10,6 +10,7 @@ import Project5 from '../Thuc_Hanh/LAB1/Project5';
 import Project6 from '../Thuc_Hanh/LAB1/Project6';
 import Project7 from '../Thuc_Hanh/LAB1/Project7';
 import Project8 from '../Thuc_Hanh/LAB1/Project8';
+import CaculatorApp from '../Thuc_Hanh/LAB1/CaculatorApp';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +39,7 @@ const PracticeList: PracticeListProps[] = [
   {RouterName: 'Project6', Component: Project6, title: 'Bài 6'},
   {RouterName: 'Project7', Component: Project7, title: 'Bài 7'},
   {RouterName: 'Project8', Component: Project8, title: 'Bài 8'},
+  {RouterName: 'CaculatorApp', Component: CaculatorApp, title: 'Caculator App'},
 ];
 
 const PracticeStack = () => {
