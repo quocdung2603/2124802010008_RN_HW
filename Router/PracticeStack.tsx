@@ -11,13 +11,18 @@ import Project6 from '../Thuc_Hanh/LAB1/Project6';
 import Project7 from '../Thuc_Hanh/LAB1/Project7';
 import Project8 from '../Thuc_Hanh/LAB1/Project8';
 import CaculatorApp from '../Thuc_Hanh/LAB1/CaculatorApp';
+import ExerciseList2 from '../Thuc_Hanh/LAB2/ExerciseList2';
+import ContactAppStack from '../Thuc_Hanh/LAB2/Navigator/ContactAppStack';
+import ContactAppBottomTab from '../Thuc_Hanh/LAB2/Navigator/ContactAppBottomTab';
+import ContactAppDrawer from '../Thuc_Hanh/LAB2/Navigator/ContactAppDrawer';
 
 const Stack = createNativeStackNavigator();
 
 interface PracticeListProps {
   RouterName: string;
   Component: React.FC<any>;
-  title: string;
+  title?: string;
+  headerShow?: boolean;
 }
 
 const PracticeList: PracticeListProps[] = [
@@ -40,6 +45,24 @@ const PracticeList: PracticeListProps[] = [
   {RouterName: 'Project7', Component: Project7, title: 'Bài 7'},
   {RouterName: 'Project8', Component: Project8, title: 'Bài 8'},
   {RouterName: 'CaculatorApp', Component: CaculatorApp, title: 'Caculator App'},
+  {RouterName: 'ExerciseList2', Component: ExerciseList2, title: ''},
+  {
+    RouterName: 'ContactAppStack',
+    Component: ContactAppStack,
+    title: 'Contacts',
+  },
+  {
+    RouterName: 'ContactAppBottomTab',
+    Component: ContactAppBottomTab,
+    title: 'Contacts',
+    headerShow: false,
+  },
+  {
+    RouterName: 'ContactAppDrawer',
+    Component: ContactAppDrawer,
+    title: 'Contacts',
+    headerShow: false,
+  },
 ];
 
 const PracticeStack = () => {
@@ -52,6 +75,7 @@ const PracticeStack = () => {
           component={item.Component}
           options={{
             title: item.title,
+            headerShown: item.headerShow,
           }}
         />
       ))}

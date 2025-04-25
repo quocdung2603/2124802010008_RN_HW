@@ -1,6 +1,5 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Login from './Login';
-import {Header} from 'react-native/Libraries/NewAppScreen';
 import Register from './Register';
 import ResetPass from './ResetPass';
 
