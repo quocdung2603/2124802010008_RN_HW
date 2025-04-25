@@ -2,36 +2,35 @@ import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 
-interface ExerciseProps {
+interface RouterProps {
   RouterName: string;
   ExerciseName: string;
 }
 
-const ExerciseList: ExerciseProps[] = [
+const RouterList: RouterProps[] = [
   {
-    RouterName: 'ContactAppStack',
-    ExerciseName: 'Contact App Stack',
+    RouterName: 'DemoStack',
+    ExerciseName: 'Demo Stack Navigator',
   },
   {
-    RouterName: 'ContactAppBottomTab',
-    ExerciseName: 'Contact App Bottom Tab',
+    RouterName: 'DemoTab',
+    ExerciseName: 'Demo Bottom Tab Navigator',
   },
   {
-    RouterName: 'ContactAppDrawer',
-    ExerciseName: 'Contact App Drawer',
+    RouterName: 'DemoDrawer',
+    ExerciseName: 'Demo Drawer Navigator',
   },
 ];
 
-const ExerciseList2 = () => {
+const HW4 = () => {
   const navigation = useNavigation();
-
   return (
     <View style={{padding: 20}}>
-      {ExerciseList.map((item, index) => (
+      {RouterList.map((item, index) => (
         <TouchableOpacity
           key={index + 0}
           onPress={() => navigation.navigate(`${item.RouterName}` as never)}
-          style={{marginBottom: 10, padding: 10, backgroundColor: '#ddd'}}>
+          style={{marginBottom: 10, padding: 10, backgroundColor: '#eee'}}>
           <Text>{item.ExerciseName}</Text>
         </TouchableOpacity>
       ))}
@@ -39,4 +38,4 @@ const ExerciseList2 = () => {
   );
 };
 
-export default ExerciseList2;
+export default HW4;

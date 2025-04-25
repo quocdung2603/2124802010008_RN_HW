@@ -1,12 +1,13 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import Login from './Login';
-import Register from './Register';
-import ResetPass from './ResetPass';
+
 import React from 'react';
+import Login from '../Buoi_3/Login';
+import Register from '../Buoi_3/Register';
+import ResetPass from '../Buoi_3/ResetPass';
 
 const Stack = createNativeStackNavigator();
 
-const HW3 = () => {
+const DemoStack = () => {
   return (
     <Stack.Navigator
       initialRouteName="Login"
@@ -20,4 +21,4 @@ const HW3 = () => {
   );
 };
 
-export default HW3;
+export default DemoStack;

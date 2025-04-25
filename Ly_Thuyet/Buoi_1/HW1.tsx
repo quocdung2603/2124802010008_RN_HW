@@ -1,6 +1,7 @@
 import {View} from 'react-native';
 import CatComponent from './CatComponent';
 import {useState} from 'react';
+import React from 'react';
 
 const HW1 = () => {
   const [feedCat, setFeedCat] = useState(false);
