@@ -16,6 +16,10 @@ const PracticeList: PracticeProps[] = [
     RouterName: 'ExerciseList2',
     ExerciseName: 'LAB 2',
   },
+  {
+    RouterName: 'ExerciseList3',
+    ExerciseName: 'LAB 3',
+  },
 ];
 const Practice = () => {
   const navigation = useNavigation();

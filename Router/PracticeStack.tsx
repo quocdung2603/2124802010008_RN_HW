@@ -15,6 +15,8 @@ import ExerciseList2 from '../Thuc_Hanh/LAB2/ExerciseList2';
 import ContactAppStack from '../Thuc_Hanh/LAB2/Navigator/ContactAppStack';
 import ContactAppBottomTab from '../Thuc_Hanh/LAB2/Navigator/ContactAppBottomTab';
 import ContactAppDrawer from '../Thuc_Hanh/LAB2/Navigator/ContactAppDrawer';
+import ExerciseList3 from '../Thuc_Hanh/LAB3/ExerciseList3';
+import SpaApp from '../Thuc_Hanh/LAB3/SpaApp';
 
 const Stack = createNativeStackNavigator();
 
@@ -60,6 +62,13 @@ const PracticeList: PracticeListProps[] = [
   {
     RouterName: 'ContactAppDrawer',
     Component: ContactAppDrawer,
+    title: 'Contacts',
+    headerShow: false,
+  },
+  {RouterName: 'ExerciseList3', Component: ExerciseList3, title: ''},
+  {
+    RouterName: 'SpaApp',
+    Component: SpaApp,
     title: 'Contacts',
     headerShow: false,
   },

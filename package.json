@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@react-native-community/template": "^0.78.2",
+    "@react-native-firebase/app": "^22.1.0",
+    "@react-native-firebase/auth": "^22.1.0",
+    "@react-native-firebase/firestore": "^22.1.0",
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/material-bottom-tabs": "^6.2.29",
     "@react-navigation/native": "^7.1.6",
@@ -20,6 +23,7 @@
     "react-native-eject": "^1.0.2",
     "react-native-gesture-handler": "^2.25.0",
     "react-native-paper": "^5.13.3",
+    "react-native-popup-menu": "^0.17.0",
     "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
