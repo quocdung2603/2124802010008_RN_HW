@@ -24,6 +24,10 @@ const PracticeList: PracticeProps[] = [
     RouterName: 'Buoi4',
     ExerciseName: 'Buổi 4',
   },
+  {
+    RouterName: 'Buoi5',
+    ExerciseName: 'Buổi 5',
+  },
 ];
 const Theory = () => {
   const navigation = useNavigation();

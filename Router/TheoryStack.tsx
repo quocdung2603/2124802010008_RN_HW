@@ -9,6 +9,7 @@ import {Title} from 'react-native-paper';
 import DemoStack from '../Ly_Thuyet/Buoi_4/DemoStack';
 import DemoTab from '../Ly_Thuyet/Buoi_4/DemoTab';
 import DemoDrawer from '../Ly_Thuyet/Buoi_4/DemoDrawer';
+import TodoAppStack from '../Ly_Thuyet/Buoi_5/TodoAppStack';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,6 +55,11 @@ const TheoryStack = () => {
         name="DemoDrawer"
         component={DemoDrawer}
         options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Buoi5"
+        component={TodoAppStack}
+        options={{title: 'Todo App'}}
       />
     </Stack.Navigator>
   );
