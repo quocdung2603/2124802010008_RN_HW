@@ -3,8 +3,13 @@ import {Alert, Text, TouchableOpacity, View} from 'react-native';
 import {Menu, Provider} from 'react-native-paper';
 import Entypo from 'react-native-vector-icons/Entypo';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
 
 const DetailService = () => {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const {item} = route.params; // Lấy dữ liệu dịch vụ từ params
   const [visible, setVisible] = useState(false);
 
   const openMenu = () => setVisible(true);
@@ -12,8 +17,8 @@ const DetailService = () => {
 
   const handleUpdate = () => {
     closeMenu();
-    console.log('Update service');
-    // Xử lý update tại đây
+    // Điều hướng đến màn hình UpdateService, truyền dữ liệu dịch vụ
+    navigation.navigate('UpdateService', {item});
   };
 
   const handleDelete = () => {
@@ -28,9 +33,28 @@ const DetailService = () => {
         },
         {
           text: 'Xoá',
-          onPress: () => {
-            console.log('Đã xoá dịch vụ');
-            // TODO: Gọi API xoá hoặc logic xoá tại đây
+          onPress: async () => {
+            try {
+              // Tìm document trong Firestore dựa trên trường id
+              const querySnapshot = await firestore()
+                .collection('services')
+                .where('id', '==', item.id)
+                .get();
+              if (querySnapshot.empty) {
+                Alert.alert('Error', 'Service not found in Firestore.');
+                return;
+              }
+              const docId = querySnapshot.docs[0].id;
+              await firestore().collection('services').doc(docId).delete();
+              Alert.alert('Success', 'Service deleted successfully!');
+              navigation.goBack(); // Quay lại Home sau khi xóa
+            } catch (error: any) {
+              console.error('Error deleting service:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete service: ' + error.message,
+              );
+            }
           },
           style: 'destructive',
         },
@@ -41,12 +65,7 @@ const DetailService = () => {
 
   return (
     <Provider>
-      <View
-        style={{
-          width: '100%',
-          flex: 1,
-          flexDirection: 'column',
-        }}>
+      <View style={{width: '100%', flex: 1, flexDirection: 'column'}}>
         <View
           style={{
             width: '100%',
@@ -56,13 +75,11 @@ const DetailService = () => {
             paddingHorizontal: 10,
             paddingVertical: 10,
           }}>
-          <View
-            style={{
-              marginTop: 'auto',
-              marginRight: 'auto',
-            }}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{marginTop: 'auto', marginRight: 'auto'}}>
             <FontAwesome name="arrow-left" size={30} color={'#fff'} />
-          </View>
+          </TouchableOpacity>
           <View style={{marginTop: 'auto', marginLeft: 'auto'}}>
             <Menu
               style={{marginTop: 100}}
@@ -90,9 +107,7 @@ const DetailService = () => {
           <Text style={{width: '30%', fontSize: 17, fontWeight: 'bold'}}>
             Service Name:
           </Text>
-          <Text style={{width: '70%', fontSize: 17}}>
-            Chăm sóc da mặt và dưỡng ẩm tự nhiên
-          </Text>
+          <Text style={{width: '70%', fontSize: 17}}>{item.title}</Text>
         </View>
         <View
           style={{
@@ -106,7 +121,7 @@ const DetailService = () => {
           <Text style={{width: '30%', fontSize: 17, fontWeight: 'bold'}}>
             Price:
           </Text>
-          <Text style={{width: '70%', fontSize: 17}}>250.000 VND</Text>
+          <Text style={{width: '70%', fontSize: 17}}>{item.price} VND</Text>
         </View>
         <View
           style={{
@@ -120,7 +135,7 @@ const DetailService = () => {
           <Text style={{width: '30%', fontSize: 17, fontWeight: 'bold'}}>
             Creator:
           </Text>
-          <Text style={{width: '70%', fontSize: 17}}>Dung</Text>
+          <Text style={{width: '70%', fontSize: 17}}>{item.addedBy}</Text>
         </View>
         <View
           style={{
@@ -134,7 +149,9 @@ const DetailService = () => {
           <Text style={{width: '30%', fontSize: 17, fontWeight: 'bold'}}>
             Time:
           </Text>
-          <Text style={{width: '70%', fontSize: 17}}>09/05/2025 09:47:22</Text>
+          <Text style={{width: '70%', fontSize: 17}}>
+            {item.createdAt?.toDate().toLocaleString()}
+          </Text>
         </View>
         <View
           style={{
@@ -148,7 +165,9 @@ const DetailService = () => {
           <Text style={{width: '30%', fontSize: 17, fontWeight: 'bold'}}>
             Final Update:
           </Text>
-          <Text style={{width: '70%', fontSize: 17}}>09/05/2025 09:47:22</Text>
+          <Text style={{width: '70%', fontSize: 17}}>
+            {item.updatedAt?.toDate().toLocaleString()}
+          </Text>
         </View>
       </View>
     </Provider>

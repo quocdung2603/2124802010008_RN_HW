@@ -1,18 +1,51 @@
 import React, {useState} from 'react';
-import {Text, TextInput, TouchableOpacity, View} from 'react-native';
-import Entypo from 'react-native-vector-icons/Entypo';
+import {Alert, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import firestore from '@react-native-firebase/firestore';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
-const AddService = () => {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('0');
+const UpdateService = () => {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const {item} = route.params; // Lấy dữ liệu dịch vụ từ params
+
+  const [name, setName] = useState(item.title);
+  const [price, setPrice] = useState(item.price);
+
+  const handleUpdateService = async () => {
+    if (!name || !price) {
+      Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+
+    try {
+      // Tìm document trong Firestore dựa trên trường id
+      const querySnapshot = await firestore()
+        .collection('services')
+        .where('id', '==', item.id)
+        .get();
+      if (querySnapshot.empty) {
+        Alert.alert('Error', 'Service not found in Firestore.');
+        return;
+      }
+      const docId = querySnapshot.docs[0].id;
+
+      // Cập nhật dịch vụ
+      await firestore().collection('services').doc(docId).update({
+        title: name,
+        price: price,
+        updatedAt: firestore.Timestamp.now(),
+      });
+      Alert.alert('Success', 'Service updated successfully!');
+      navigation.navigate('Home'); // Quay lại DetailService
+    } catch (error: any) {
+      console.error('Error updating service:', error);
+      Alert.alert('Error', 'Failed to update service: ' + error.message);
+    }
+  };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        flexDirection: 'column',
-      }}>
+    <View style={{flex: 1, flexDirection: 'column'}}>
       <View
         style={{
           width: '100%',
@@ -22,13 +55,11 @@ const AddService = () => {
           paddingHorizontal: 10,
           paddingVertical: 10,
         }}>
-        <View
-          style={{
-            marginTop: 'auto',
-            marginRight: 'auto',
-          }}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{marginTop: 'auto', marginRight: 'auto'}}>
           <FontAwesome name="arrow-left" size={30} color={'#fff'} />
-        </View>
+        </TouchableOpacity>
 
         <Text
           style={{
@@ -38,7 +69,7 @@ const AddService = () => {
             color: '#fff',
             marginRight: 'auto',
           }}>
-          Service
+          Update Service
         </Text>
       </View>
       <View style={{marginVertical: 10, marginHorizontal: 10}}>
@@ -64,6 +95,7 @@ const AddService = () => {
           value={price}
           onChangeText={setPrice}
           placeholder="Price"
+          keyboardType="numeric"
           style={{
             borderRadius: 10,
             padding: 10,
@@ -78,7 +110,8 @@ const AddService = () => {
           backgroundColor: 'hotpink',
           padding: 10,
           borderRadius: 10,
-        }}>
+        }}
+        onPress={handleUpdateService}>
         <Text
           style={{
             fontSize: 20,
@@ -86,11 +119,11 @@ const AddService = () => {
             color: 'white',
             textAlign: 'center',
           }}>
-          Add
+          Update
         </Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-export default AddService;
+export default UpdateService;

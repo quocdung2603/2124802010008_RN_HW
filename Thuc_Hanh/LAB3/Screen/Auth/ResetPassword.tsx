@@ -1,24 +1,39 @@
 import React, {useState} from 'react';
 import {
-  Alert,
   Text,
   TextInput,
   View,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import auth from '@react-native-firebase/auth';
 
-const Login = () => {
+const ResetPassword = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {};
+  const handleResetPassword = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email.');
+      return;
+    }
+    try {
+      await auth().sendPasswordResetEmail(email);
+      Alert.alert('Success', 'Password reset email sent!');
+      // Optionally, navigate to login screen
+    } catch (error: any) {
+      let message = 'Failed to send reset email.';
+      if (error.code === 'auth/invalid-email')
+        message = 'Invalid email address.';
+      else if (error.code === 'auth/user-not-found')
+        message = 'User not found.';
+      Alert.alert('Error', message);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Reset Password</Text>
 
       <TextInput
         value={email}
@@ -28,34 +43,14 @@ const Login = () => {
         style={styles.input}
       />
 
-      <View style={styles.passwordContainer}>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password"
-          secureTextEntry={!showPassword}
-          style={styles.passwordInput}
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          {showPassword ? (
-            <Feather name="eye" size={20} />
-          ) : (
-            <Feather name="eye-off" size={20} />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Đăng nhập</Text>
-      </TouchableOpacity>
-      <TouchableOpacity>
-        <Text style={styles.linkText}>Don't have an account? Register now</Text>
+      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+        <Text style={styles.buttonText}>Send</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-export default Login;
+export default ResetPassword;
 
 const styles = StyleSheet.create({
   container: {

@@ -1,6 +1,6 @@
-import {startAfter} from '@react-native-firebase/firestore';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
+  Alert,
   Text,
   TextInput,
   View,
@@ -8,27 +8,56 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import auth from '@react-native-firebase/auth';
+import {useNavigation} from '@react-navigation/native';
+import {login, useMyContextController} from '../../Context/MyContextController';
 
-const Register = () => {
-  const [fullName, setFullName] = useState('');
+const Login = () => {
+  const navigation = useNavigation<any>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rePassword, setRePassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showRePassword, setReShowPassword] = useState(false);
+  const [controller, dispatch] = useMyContextController();
+  const {userLogin} = controller;
 
-  const handleLogin = () => {};
+  // Theo dõi userLogin để điều hướng sau khi đăng nhập
+  useEffect(() => {
+    if (userLogin) {
+      console.log('User Login:', userLogin);
+      if (userLogin.role === 'admin') {
+        console.log('Navigating to SpaAdminAppStack');
+        navigation.navigate('SpaAdminAppStack');
+      } else {
+        console.log('Navigating to SpaClientAppStack');
+        navigation.navigate('SpaClientAppStack');
+      }
+    }
+  }, [userLogin, navigation]);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password.');
+      return;
+    }
+    try {
+      await login(dispatch, email, password);
+      Alert.alert('Success', 'Logged in successfully!');
+    } catch (error: any) {
+      let message = 'Login failed. Please try again.';
+      if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email address.';
+      } else if (error.code === 'auth/user-not-found') {
+        message = 'User not found.';
+      } else if (error.code === 'auth/wrong-password') {
+        message = 'Incorrect password.';
+      }
+      Alert.alert('Error', message);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
-
-      <TextInput
-        value={fullName}
-        onChangeText={setFullName}
-        placeholder="fullName"
-        style={styles.input}
-      />
+      <Text style={styles.title}>Login</Text>
 
       <TextInput
         value={email}
@@ -54,35 +83,20 @@ const Register = () => {
           )}
         </TouchableOpacity>
       </View>
-
-      <View style={{...styles.passwordContainer, marginBottom: 40}}>
-        <TextInput
-          value={rePassword}
-          onChangeText={setRePassword}
-          placeholder="Re-enter password"
-          secureTextEntry={!showRePassword}
-          style={styles.passwordInput}
-        />
-        <TouchableOpacity onPress={() => setReShowPassword(!showRePassword)}>
-          {showRePassword ? (
-            <Feather name="eye" size={20} />
-          ) : (
-            <Feather name="eye-off" size={20} />
-          )}
-        </TouchableOpacity>
-      </View>
-
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Đăng nhập</Text>
       </TouchableOpacity>
-      <TouchableOpacity>
-        <Text style={styles.linkText}>Have an account? Login now</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.linkText}>Don't have an account? Register now</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
+        <Text style={styles.linkText}>Forget password? Reset password now</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-export default Register;
+export default Login;
 
 const styles = StyleSheet.create({
   container: {
@@ -115,7 +129,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 40,
   },
   passwordInput: {
     flex: 1,
@@ -128,7 +142,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 50,
     borderRadius: 10,
-    marginBottom: 20,
   },
   buttonText: {
     color: 'white',

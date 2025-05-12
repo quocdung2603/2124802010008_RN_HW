@@ -1,4 +1,3 @@
-// store/ContextController.tsx
 import React, {
   createContext,
   useContext,
@@ -13,9 +12,10 @@ import {Alert} from 'react-native';
 
 // Khai báo types
 type UserType = {
+  id?: string; // Thêm trường id
   email: string;
-  name?: string;
-  // các trường khác nếu có
+  fullName?: string; // Thay name thành fullName để đồng bộ với Register
+  role?: string;
   [key: string]: any;
 };
 
@@ -86,7 +86,12 @@ export const login = async (
   try {
     const response = await auth().signInWithEmailAndPassword(email, password);
     USERS.doc(email).onSnapshot(u => {
-      dispatch({type: 'USER_LOGIN', value: u.data() as UserType});
+      const userData = u.data();
+      if (userData) {
+        dispatch({type: 'USER_LOGIN', value: userData as UserType});
+      } else {
+        Alert.alert('Error', 'User data not found in Firestore');
+      }
     });
   } catch (e) {
     Alert.alert('Sai email và password');

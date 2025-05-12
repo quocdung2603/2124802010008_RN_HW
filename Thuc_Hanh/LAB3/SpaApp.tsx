@@ -1,13 +1,15 @@
 import firestore from '@react-native-firebase/firestore';
 import React from 'react';
 import {Alert, Text, TouchableOpacity, View} from 'react-native';
-import Login from './Screen/AuthScreen/Login';
-import Register from './Screen/AuthScreen/Register';
-import ResetPassword from './Screen/AuthScreen/ResetPassword';
-import Home from './Screen/Home';
-import AddService from './Screen/AddService';
-import DetailService from './Screen/DetailService';
-import Profile from './Screen/Profile';
+import Login from './Screen/Auth/Login';
+import Register from './Screen/Auth/Register';
+import ResetPassword from './Screen/Auth/ResetPassword';
+import Home from './Screen/Admin/ServiceScreen/Home';
+import AddService from './Screen/Admin/ServiceScreen/AddService';
+import DetailService from './Screen/Admin/ServiceScreen/DetailService';
+import Profile from './Screen/Admin/ProfileScreen/Profile';
+import SpaAdminAppStack from './Screen/Admin/SpaAdminAppStack';
+import SpaClientAppStack from './Screen/Client/SpaClientAppStack';
 const SpaApp = () => {
   const handleCreateAdmin = async () => {
     try {
@@ -24,11 +26,12 @@ const SpaApp = () => {
   };
 
   return (
-    <TouchableOpacity
-      onPress={handleCreateAdmin}
-      style={{marginTop: 100, marginLeft: 100, borderWidth: 1}}>
-      <Text>Hello</Text>
-    </TouchableOpacity>
+    // <TouchableOpacity
+    //   onPress={handleCreateAdmin}
+    //   style={{marginTop: 100, marginLeft: 100, borderWidth: 1}}>
+    //   <Text>Hello</Text>
+    // </TouchableOpacity>
+    <SpaClientAppStack />
   );
 };
 
