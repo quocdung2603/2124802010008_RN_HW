@@ -8,15 +8,16 @@ import {
   DrawerItem,
 } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/Feather';
+import {getAuth, signOut} from '@react-native-firebase/auth';
+import {useMyContext} from '../context/AppContext'; // Giả sử file context nằm cùng thư mục
 import HomeScreen from '../screen/client/HomeScreen';
 import FoodListScreen from '../screen/client/FoodListScreen';
 import CartScreen from '../screen/client/CartScreen';
 import PaymentScreen from '../screen/client/PaymentScreen';
 import FoodDetailScreen from '../screen/client/FoodDetailScreen';
-
-// Giả lập dữ liệu người dùng (email)
-const userEmail = 'john.doe@example.com'; // Thay bằng dữ liệu thực tế từ hệ thống đăng nhập
-const userName = userEmail.split('@')[0]; // Lấy phần trước dấu @ làm tên người dùng
+import OrderNotice from '../screen/client/OrderNotice';
+import MyOrder from '../screen/client/MyOrder';
+import OrderDetail from '../screen/client/OrderDetail';
 
 const Stack = createNativeStackNavigator();
 const HomeStack = ({navigation}: any) => {
@@ -43,10 +44,37 @@ const HomeStack = ({navigation}: any) => {
 
 const CartStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName="CartScreen">
       <Stack.Screen
         name="CartScreen"
         component={CartScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="OrderNotice"
+        component={OrderNotice}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{headerShown: false}}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const OrderStack = () => {
+  return (
+    <Stack.Navigator initialRouteName="MyOrder">
+      <Stack.Screen
+        name="MyOrder"
+        component={MyOrder}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="OrderDetail"
+        component={OrderDetail}
         options={{headerShown: false}}
       />
       <Stack.Screen
@@ -65,6 +93,21 @@ const CartStack = () => {
 
 // Tùy chỉnh nội dung Drawer
 const CustomDrawerContent = (props: any) => {
+  const {state, dispatch} = useMyContext();
+  const userEmail = state.userLogin?.email || 'guest@example.com';
+  const userName = state.userLogin?.name || userEmail.split('@')[0];
+
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      dispatch({type: 'LOGOUT'});
+      props.navigation.navigate('Login');
+    } catch (error: any) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   return (
     <DrawerContentScrollView {...props}>
       {/* Phần đầu Drawer: Avatar và tên người dùng */}
@@ -82,7 +125,7 @@ const CustomDrawerContent = (props: any) => {
       {/* Mục Logout */}
       <DrawerItem
         label="Logout"
-        onPress={() => props.navigation.navigate('Login')} // Điều hướng về Login khi đăng xuất
+        onPress={handleLogout}
         labelStyle={styles.logoutLabel}
         icon={() => <Icon name="log-out" size={20} color="#800000" />}
       />
@@ -92,6 +135,10 @@ const CustomDrawerContent = (props: any) => {
 
 const Drawer = createDrawerNavigator();
 const RestaurentAppDrawer = () => {
+  const {state} = useMyContext();
+  console.log(state);
+  const userName = state.userLogin?.name || 'Guest';
+
   return (
     <Drawer.Navigator
       initialRouteName="HomeStack"
@@ -104,7 +151,7 @@ const RestaurentAppDrawer = () => {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        headerTitle: 'Restaurant App',
+        headerTitle: `Restaurant App`,
         headerTitleAlign: 'center',
         headerRight: () => (
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -142,6 +189,16 @@ const RestaurentAppDrawer = () => {
           drawerLabel: 'Cart',
           drawerIcon: ({color, size}) => (
             <Icon name="shopping-cart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="OrderStack"
+        component={OrderStack}
+        options={{
+          drawerLabel: 'Order',
+          drawerIcon: ({color, size}) => (
+            <Icon name="box" size={size} color={color} />
           ),
         }}
       />

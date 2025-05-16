@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {useMyContext} from '../../context/AppContext'; // Giả sử file context nằm cùng thư mục
 
 // Định nghĩa kiểu dữ liệu cho route.params
 type FoodDetailScreenRouteProp = RouteProp<
@@ -17,8 +18,9 @@ type FoodDetailScreenRouteProp = RouteProp<
         id: string;
         name: string;
         price: number;
-        image: any;
-        description?: string;
+        description: string;
+        imagePath: string;
+        topicId: string;
       };
     };
   },
@@ -28,6 +30,7 @@ type FoodDetailScreenRouteProp = RouteProp<
 const FoodDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<FoodDetailScreenRouteProp>();
+  const {dispatch} = useMyContext();
 
   // Nhận dữ liệu món ăn từ route.params, nếu không có thì dùng giá trị mặc định
   const {food} = route.params || {
@@ -35,16 +38,35 @@ const FoodDetailScreen = () => {
       id: '1',
       name: 'Mì Xào',
       price: 8,
-      image: require('../../../../Asset/images/chinese.png'),
       description:
-        'A delicious stir-fried noodle dish with fresh vegetables and savory sauce.',
+        'Mì xào giòn với rau củ tươi và thịt heo, đậm đà hương vị Trung Hoa.',
+      imagePath: '../../../../Asset/images/mi-xao.png',
+      topicId: '1',
     },
+  };
+
+  // Hàm xử lý khi nhấn "Add to Cart"
+  const handleAddToCart = () => {
+    dispatch({
+      type: 'ADD_TO_CART',
+      payload: {
+        id: food.id + '-' + food.topicId, // Đảm bảo ID duy nhất
+        name: food.name,
+        price: food.price,
+      },
+    });
+    Alert.alert('Thành công', `${food.name} đã được thêm vào giỏ hàng!`);
+    // Có thể điều hướng đến CartScreen nếu cần
+    // navigation.navigate('CartStack');
   };
 
   return (
     <View style={styles.container}>
       {/* Hình ảnh món ăn */}
-      <Image source={food.image} style={styles.foodImage} />
+      <Image
+        source={require('../../../../Asset/images/biryani.png')}
+        style={styles.foodImage}
+      />
 
       {/* Tên món ăn */}
       <Text style={styles.foodName}>{food.name}</Text>
@@ -55,18 +77,11 @@ const FoodDetailScreen = () => {
       {/* Mô tả món ăn */}
       <Text style={styles.foodDescription}>
         {food.description ||
-          'A delicious dish prepared with fresh ingredients.'}
+          'Món ăn thơm ngon được chế biến từ nguyên liệu tươi sạch.'}
       </Text>
 
       {/* Nút Add to Cart */}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => {
-          // Giả lập thêm vào giỏ hàng
-          Alert.alert(`${food.name} has been added to your cart!`);
-          // Điều hướng về FoodListScreen hoặc CartScreen nếu cần
-          // navigation.navigate('DetailCart');
-        }}>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
         <Text style={styles.addButtonText}>Add to Cart</Text>
       </TouchableOpacity>
     </View>
@@ -106,7 +121,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   addButton: {
-    backgroundColor: '#28a745', // Màu xanh lá giống các nút trước
+    backgroundColor: '#28a745',
     paddingVertical: 12,
     paddingHorizontal: 40,
     borderRadius: 10,

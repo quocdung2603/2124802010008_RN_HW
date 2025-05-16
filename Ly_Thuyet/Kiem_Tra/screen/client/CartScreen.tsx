@@ -1,38 +1,34 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, FlatList, TouchableOpacity, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-
-// Dữ liệu giả lập giỏ hàng, thêm unitPrice
-const initialCartItems = [
-  {
-    id: '1',
-    name: 'Fajita Chicken Burrito',
-    quantity: 3,
-    unitPrice: 275,
-    price: 825,
-  }, // unitPrice = 825 / 3
-  {id: '2', name: 'Gulab Jamun', quantity: 2, unitPrice: 63, price: 126}, // unitPrice = 126 / 2
-  {id: '3', name: 'Noodles', quantity: 1, unitPrice: 100, price: 100}, // unitPrice = 100 / 1
-];
+import {useMyContext} from '../../context/AppContext';
+import {firebase} from '@react-native-firebase/firestore';
 
 // Tỷ lệ thuế
 const TAX_RATE = 0.08; // 8%
 
 const CartScreen = () => {
   const navigation = useNavigation<any>();
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const {state, dispatch} = useMyContext();
   const [billDetails, setBillDetails] = useState({
-    itemsTotal: 1051,
+    itemsTotal: 0,
     offerDiscount: -18,
-    taxes: 84.08,
+    taxes: 0,
     deliveryCharges: 30,
-    totalPay: 1147.08,
+    totalPay: 0,
   });
 
   // Hàm tính toán hóa đơn dựa trên giỏ hàng
   const calculateBill = (items: any) => {
     const itemsTotal = items.reduce(
-      (total: any, item: any) => total + item.price,
+      (total: number, item: any) => total + item.price * item.quantity,
       0,
     );
     const taxes = itemsTotal * TAX_RATE;
@@ -51,37 +47,86 @@ const CartScreen = () => {
 
   // Cập nhật hóa đơn khi giỏ hàng thay đổi
   useEffect(() => {
-    setBillDetails(calculateBill(cartItems));
-  }, [cartItems]);
+    setBillDetails(calculateBill(state.cartItems));
+  }, [state.cartItems]);
 
   // Hàm xử lý tăng số lượng
-  const increaseQuantity = (id: any) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-              price: (item.quantity + 1) * item.unitPrice,
-            }
-          : item,
-      ),
-    );
+  const increaseQuantity = (id: string) => {
+    const item = state.cartItems.find((item: any) => item.id === id);
+    if (item) {
+      dispatch({
+        type: 'UPDATE_QUANTITY',
+        payload: {id, quantity: item.quantity + 1},
+      });
+    }
   };
 
   // Hàm xử lý giảm số lượng
-  const decreaseQuantity = (id: any) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id && item.quantity > 1
-          ? {
-              ...item,
-              quantity: item.quantity - 1,
-              price: (item.quantity - 1) * item.unitPrice,
-            }
-          : item,
-      ),
-    );
+  const decreaseQuantity = (id: string) => {
+    const item = state.cartItems.find((item: any) => item.id === id);
+    if (item && item.quantity > 1) {
+      dispatch({
+        type: 'UPDATE_QUANTITY',
+        payload: {id, quantity: item.quantity - 1},
+      });
+    } else if (item && item.quantity === 1) {
+      dispatch({
+        type: 'REMOVE_FROM_CART',
+        payload: {id},
+      });
+    }
+  };
+
+  // Hàm xử lý xóa món ăn khỏi giỏ hàng
+  const removeFromCart = (id: string) => {
+    Alert.alert('Xác nhận', 'Bạn có chắc muốn xóa món ăn này khỏi giỏ hàng?', [
+      {text: 'Hủy', style: 'cancel'},
+      {
+        text: 'Xóa',
+        style: 'destructive',
+        onPress: () => {
+          dispatch({
+            type: 'REMOVE_FROM_CART',
+            payload: {id},
+          });
+        },
+      },
+    ]);
+  };
+
+  // Hàm xử lý đặt hàng
+  const handlePlaceOrder = async () => {
+    if (!state.userLogin) {
+      Alert.alert('Lỗi', 'Bạn cần đăng nhập để đặt hàng!');
+      navigation.navigate('Login');
+      return;
+    }
+
+    try {
+      const ordersCollection = firebase.firestore().collection('orders');
+      const orderData = {
+        userId: state.userLogin.uid, // Sử dụng uid từ Firebase Authentication
+        items: state.cartItems,
+        billDetails,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'pending', // Trạng thái ban đầu
+      };
+
+      // Thêm đơn hàng vào Firestore
+      const orderRef = await ordersCollection.add(orderData);
+      console.log('Order created with ID:', orderRef.id);
+
+      // Xóa giỏ hàng
+      dispatch({type: 'CLEAR_CART'});
+
+      // Điều hướng đến OrderNotice với orderId
+      navigation.navigate('OrderNotice', {orderId: orderRef.id});
+
+      Alert.alert('Thành công', 'Đơn hàng của bạn đã được đặt thành công!');
+    } catch (error: any) {
+      console.error('Error placing order:', error);
+      Alert.alert('Lỗi', `Không thể đặt hàng: ${error.message}`);
+    }
   };
 
   const renderCartItem = ({item}: any) => (
@@ -100,65 +145,86 @@ const CartScreen = () => {
           <Text style={styles.quantityText}>+</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.itemPrice}>${item.price}</Text>
+      <Text style={styles.itemPrice}>
+        ${(item.price * item.quantity).toFixed(2)}
+      </Text>
+      <TouchableOpacity
+        style={styles.removeButton}
+        onPress={() => removeFromCart(item.id)}>
+        <Text style={styles.removeButtonText}>Xóa</Text>
+      </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      {/* Danh sách món ăn trong giỏ hàng */}
-      <FlatList
-        data={cartItems}
-        renderItem={renderCartItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-      />
+      {state.cartItems.length === 0 ? (
+        <View style={styles.emptyCartContainer}>
+          <Text style={styles.emptyCartText}>Giỏ hàng của bạn đang trống!</Text>
+          <TouchableOpacity
+            style={styles.shopButton}
+            onPress={() => navigation.navigate('HomeStack')}>
+            <Text style={styles.shopButtonText}>Tiếp tục mua sắm</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* Danh sách món ăn trong giỏ hàng */}
+          <FlatList
+            data={state.cartItems}
+            renderItem={renderCartItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.list}
+          />
 
-      {/* Thông tin hóa đơn */}
-      <View style={styles.billContainer}>
-        <Text style={styles.billTitle}>Bill Receipt</Text>
-        <View style={styles.billRow}>
-          <Text style={styles.billLabel}>Items Total</Text>
-          <Text style={styles.billValue}>
-            ${billDetails.itemsTotal.toFixed(2)}
-          </Text>
-        </View>
-        <View style={styles.billRow}>
-          <Text style={styles.billLabel}>Offer Discount</Text>
-          <Text style={styles.billValue}>
-            ${billDetails.offerDiscount.toFixed(2)}
-          </Text>
-        </View>
-        <View style={styles.billRow}>
-          <Text style={styles.billLabel}>Taxes (8%)</Text>
-          <Text style={styles.billValue}>${billDetails.taxes.toFixed(2)}</Text>
-        </View>
-        <View style={styles.billRow}>
-          <Text style={styles.billLabel}>Delivery Charges</Text>
-          <Text style={styles.billValue}>
-            ${billDetails.deliveryCharges.toFixed(2)}
-          </Text>
-        </View>
-        <View style={styles.billRow}>
-          <Text style={styles.billLabel}>Total Pay</Text>
-          <Text style={styles.billValue}>
-            ${billDetails.totalPay.toFixed(2)}
-          </Text>
-        </View>
-      </View>
+          {/* Thông tin hóa đơn */}
+          <View style={styles.billContainer}>
+            <Text style={styles.billTitle}>Hóa đơn</Text>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Tổng tiền món ăn</Text>
+              <Text style={styles.billValue}>
+                ${billDetails.itemsTotal.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Giảm giá</Text>
+              <Text style={styles.billValue}>
+                ${billDetails.offerDiscount.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Thuế (8%)</Text>
+              <Text style={styles.billValue}>
+                ${billDetails.taxes.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Phí giao hàng</Text>
+              <Text style={styles.billValue}>
+                ${billDetails.deliveryCharges.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Tổng thanh toán</Text>
+              <Text style={styles.billValue}>
+                ${billDetails.totalPay.toFixed(2)}
+              </Text>
+            </View>
+          </View>
 
-      {/* Nút thanh toán */}
-      <View style={styles.payButtonContainer}>
-        <TouchableOpacity
-          style={styles.payButton}
-          onPress={() => navigation.navigate('PaymentScreen')} // Giả lập điều hướng đến PaymentScreen
-        >
-          <Text style={styles.payButtonText}>Proceed To Pay</Text>
-          <Text style={styles.payButtonPrice}>
-            ${billDetails.totalPay.toFixed(2)}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* Nút thanh toán */}
+          <View style={styles.payButtonContainer}>
+            <TouchableOpacity
+              style={styles.payButton}
+              onPress={handlePlaceOrder}>
+              <Text style={styles.payButtonText}>Tiến hành đặt hàng</Text>
+              <Text style={styles.payButtonPrice}>
+                ${billDetails.totalPay.toFixed(2)}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 };
@@ -188,7 +254,7 @@ const styles = StyleSheet.create({
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 15, // Thêm khoảng cách giữa nút "+" và giá tiền
+    marginRight: 15,
   },
   quantityButton: {
     backgroundColor: '#ddd',
@@ -206,6 +272,18 @@ const styles = StyleSheet.create({
   },
   itemPrice: {
     fontSize: 16,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+  removeButton: {
+    backgroundColor: '#ff4444',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 5,
+  },
+  removeButtonText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: '600',
   },
   billContainer: {
@@ -252,6 +330,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   payButtonPrice: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyCartContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyCartText: {
+    fontSize: 18,
+    color: '#555',
+    marginBottom: 20,
+  },
+  shopButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  shopButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,39 +7,112 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  Alert,
 } from 'react-native';
+import {firebase} from '@react-native-firebase/firestore';
 
-const cuisines = [
+const initialCuisines = [
   {
     id: '1',
     name: 'Chinese',
-    image: require('../../../../Asset/images/chinese.png'),
+    imagePath: '../../../../Asset/images/chinese.png',
   },
   {
     id: '2',
     name: 'South Indian',
-    image: require('../../../../Asset/images/south-indian.png'),
+    imagePath: '../../../../Asset/images/south-indian.png',
   },
   {
     id: '3',
     name: 'North Indian',
-    image: require('../../../../Asset/images/north-indian.png'),
+    imagePath: '../../../../Asset/images/north-indian.png',
   },
   {
     id: '4',
     name: 'Beverages',
-    image: require('../../../../Asset/images/beverages.png'),
+    imagePath: '../../../../Asset/images/beverages.png',
   },
 ];
 
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
+  const [cuisines, setCuisines] = useState<any[]>([]);
+
+  // Hàm thêm cuisines vào Firestore nếu chưa tồn tại
+  const initializeCuisines = async () => {
+    console.log('Starting initializeCuisines');
+    try {
+      const cuisinesCollection = firebase.firestore().collection('cuisines');
+      console.log('Fetching cuisines collection');
+      const cuisineSnapshot = await cuisinesCollection.get();
+
+      // Nếu Firestore chưa có dữ liệu cuisines, thêm dữ liệu từ initialCuisines
+      if (cuisineSnapshot.empty) {
+        console.log('Cuisines collection is empty, initializing...');
+        const batch = firebase.firestore().batch();
+        initialCuisines.forEach(cuisine => {
+          const docRef = cuisinesCollection.doc(cuisine.id);
+          batch.set(docRef, {
+            name: cuisine.name,
+            imagePath: cuisine.imagePath,
+          });
+        });
+        await batch.commit();
+        console.log('Cuisines initialized in Firestore');
+        Alert.alert(
+          'Thành công',
+          'Dữ liệu cuisines đã được khởi tạo trên Firestore',
+        );
+      } else {
+        console.log('Cuisines collection already exists');
+      }
+    } catch (error: any) {
+      console.error('Error initializing cuisines:', error);
+      Alert.alert('Lỗi', `Không thể khởi tạo cuisines: ${error.message}`);
+    }
+  };
+
+  // Hàm lấy dữ liệu cuisines từ Firestore
+  const fetchCuisines = async () => {
+    console.log('Starting fetchCuisines');
+    try {
+      const cuisinesCollection = firebase.firestore().collection('cuisines');
+      const cuisineSnapshot = await cuisinesCollection.get();
+      const cuisineList = cuisineSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      console.log('Fetched cuisines:', cuisineList);
+      setCuisines(cuisineList);
+      console.log(cuisines);
+    } catch (error: any) {
+      console.error('Error fetching cuisines:', error);
+      Alert.alert('Lỗi', `Không thể lấy dữ liệu cuisines: ${error.message}`);
+    }
+  };
+
+  // Gọi hàm khởi tạo và lấy dữ liệu khi component mount
+  useEffect(() => {
+    console.log('useEffect triggered');
+    const initializeAndFetch = async () => {
+      try {
+        await initializeCuisines();
+        await fetchCuisines();
+      } catch (error) {
+        console.error('Error in initializeAndFetch:', error);
+      }
+    };
+    initializeAndFetch();
+  }, []);
 
   const renderCuisine = ({item}: any) => (
     <TouchableOpacity
       style={styles.cuisineCard}
       onPress={() => navigation.navigate('FoodListScreen', {topicId: item.id})}>
-      <Image source={item.image} style={styles.cuisineImage} />
+      <Image
+        source={require('../../../../Asset/images/beverages.png')}
+        style={styles.cuisineImage}
+      />
       <Text style={styles.cuisineText}>{item.name}</Text>
     </TouchableOpacity>
   );
