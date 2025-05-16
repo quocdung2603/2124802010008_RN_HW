@@ -5,11 +5,11 @@ import HW3 from '../Ly_Thuyet/Buoi_3/HW3';
 import Theory from '../Screens/Theory';
 import React from 'react';
 import HW4 from '../Ly_Thuyet/Buoi_4/HW4';
-import {Title} from 'react-native-paper';
 import DemoStack from '../Ly_Thuyet/Buoi_4/DemoStack';
 import DemoTab from '../Ly_Thuyet/Buoi_4/DemoTab';
 import DemoDrawer from '../Ly_Thuyet/Buoi_4/DemoDrawer';
 import TodoAppStack from '../Ly_Thuyet/Buoi_5/TodoAppStack';
+import RestaurentAppStack from '../Ly_Thuyet/Kiem_Tra/router/RestaurentAppStack';
 
 const Stack = createNativeStackNavigator();
 
@@ -60,6 +60,11 @@ const TheoryStack = () => {
         name="Buoi5"
         component={TodoAppStack}
         options={{title: 'Todo App'}}
+      />
+      <Stack.Screen
+        name="KiemTra"
+        component={RestaurentAppStack}
+        options={{headerShown: false}}
       />
     </Stack.Navigator>
   );
